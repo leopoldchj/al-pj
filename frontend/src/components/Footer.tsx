@@ -38,7 +38,7 @@ function Footer() {
             }}
         >
             <Typography variant="body1" color={mainFontColor}>
-                © 2025 <span onDoubleClick={handleDoubleClick}>Aurianne Schwartz</span> &{" "}
+                © 2026 <span onDoubleClick={handleDoubleClick}>Aurianne Schwartz</span> &{" "}
                 <span>Léopold Chappuis</span>
                 {process.env.REACT_APP_RELEASE_TAG && (
                     <span
