@@ -1,4 +1,5 @@
 from core.services import PhotoService
+from core.serializers import TargetAlbumSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -32,3 +33,35 @@ class PhotoDetailView(APIView):
             photo_id=photo_id, album_id=album_id, data=request.data
         )
         return Response({"photo": photo_data}, status=status.HTTP_200_OK)
+
+
+class PhotoMoveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, album_id, photo_id):
+        serializer = TargetAlbumSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_album_id = serializer.validated_data["target_album_id"]
+
+        photo_data = PhotoService.move_photo_to_album(
+            photo_id=photo_id,
+            target_album_id=target_album_id,
+            user=request.user,
+        )
+        return Response({"photo": photo_data}, status=status.HTTP_200_OK)
+
+
+class PhotoCopyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, album_id, photo_id):
+        serializer = TargetAlbumSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        target_album_id = serializer.validated_data["target_album_id"]
+
+        photo_data = PhotoService.copy_photo_to_album(
+            photo_id=photo_id,
+            target_album_id=target_album_id,
+            user=request.user,
+        )
+        return Response({"photo": photo_data}, status=status.HTTP_201_CREATED)

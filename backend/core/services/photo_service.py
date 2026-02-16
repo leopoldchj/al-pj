@@ -117,6 +117,83 @@ class PhotoService:
 
         return photo_data
 
+    @classmethod
+    def move_photo_to_album(cls, photo_id: int, target_album_id: int, user) -> dict:
+        """Move a photo to another album by updating its FK."""
+        try:
+            photo = Photo.objects.get(pk=photo_id)
+        except Photo.DoesNotExist:
+            raise NotFound(f"Photo with id {photo_id} not found")
+
+        try:
+            target_album = Album.objects.get(pk=target_album_id)
+        except Album.DoesNotExist:
+            raise NotFound(f"Album with id {target_album_id} not found")
+
+        source_album_id = photo.album_id
+        if source_album_id == target_album_id:
+            raise ValidationError("La photo est déjà dans cet album.")
+
+        photo.album = target_album
+        photo.save()
+
+        photo_data = PhotoSerializer(photo).data
+
+        safe_photo_id = cls._sanitize_for_log(photo_id)
+        safe_target = cls._sanitize_for_log(target_album_id)
+        logger.info(f"Photo {safe_photo_id} moved to album {safe_target}")
+
+        cls._broadcast_change(
+            WebSocketMessageType.PHOTO_MOVED,
+            {
+                "data": photo_data,
+                "source_album_id": source_album_id,
+                "target_album_id": target_album_id,
+            },
+        )
+
+        return photo_data
+
+    @classmethod
+    def copy_photo_to_album(cls, photo_id: int, target_album_id: int, user) -> dict:
+        """Copy a photo to another album with S3 server-side copy."""
+        try:
+            photo = Photo.objects.get(pk=photo_id)
+        except Photo.DoesNotExist:
+            raise NotFound(f"Photo with id {photo_id} not found")
+
+        try:
+            target_album = Album.objects.get(pk=target_album_id)
+        except Album.DoesNotExist:
+            raise NotFound(f"Album with id {target_album_id} not found")
+
+        if photo.album_id == target_album_id:
+            raise ValidationError("La photo est déjà dans cet album.")
+
+        # S3 server-side copy to a new key
+        new_url = photo_repository.copy_file(photo.image_url, target_album_id)
+
+        # Create a new Photo entry pointing to the copied file
+        new_photo = Photo.objects.create(
+            album=target_album,
+            image_url=new_url,
+            caption=photo.caption,
+            location=photo.location,
+        )
+
+        photo_data = PhotoSerializer(new_photo).data
+
+        safe_photo_id = cls._sanitize_for_log(photo_id)
+        safe_target = cls._sanitize_for_log(target_album_id)
+        logger.info(f"Photo {safe_photo_id} copied to album {safe_target}")
+
+        cls._broadcast_change(
+            WebSocketMessageType.PHOTO_COPIED,
+            {"data": photo_data, "album_id": target_album_id},
+        )
+
+        return photo_data
+
     @staticmethod
     def _broadcast_change(message_type: WebSocketMessageType, message_data: dict):
         """Broadcast a photo change to all authenticated users."""

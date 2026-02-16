@@ -85,12 +85,45 @@ class AwsPhotoSaver(PhotoSaverRepository):
 
         return self._get_s3_resource_url(file_key)
 
+    def _extract_key_from_url(self, file_url: str) -> str:
+        prefix = f"https://{AWS_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/"
+        if file_url.startswith(prefix):
+            return file_url[len(prefix):]
+        # Fallback: take everything after the domain
+        from urllib.parse import urlparse
+
+        parsed = urlparse(file_url)
+        return parsed.path.lstrip("/")
+
     def delete(self, file_url: str) -> bool:
         if file_url is None or file_url == "":
             return True
 
         print("Deleting file from cloud:", file_url)
 
-        file_key = file_url.split("/")[-1]
+        file_key = self._extract_key_from_url(file_url)
 
         return self._delete_from_s3(file_key)
+
+    def copy_file(self, source_url: str, target_album_id) -> str:
+        source_key = self._extract_key_from_url(source_url)
+        # Extract original filename (after the uuid_ prefix in the last segment)
+        original_filename = source_key.split("/")[-1]
+        new_filename = self._generate_unique_name(original_filename)
+
+        new_key = f"{target_album_id}/{new_filename}"
+        if DEBUG:
+            new_key = f"debug_{new_key}"
+
+        s3 = self._get_s3_client()
+        try:
+            s3.copy_object(
+                Bucket=AWS_BUCKET_NAME,
+                CopySource={"Bucket": AWS_BUCKET_NAME, "Key": source_key},
+                Key=new_key,
+            )
+        except (NoCredentialsError, ClientError, BotoCoreError) as e:
+            print(f"Erreur copie S3: {e}")
+            raise CloudUploadError("Échec de la copie S3")
+
+        return self._get_s3_resource_url(new_key)

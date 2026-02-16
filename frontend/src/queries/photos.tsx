@@ -67,6 +67,55 @@ export const useDeletePhotoMutation = (): UseMutationResult<void, unknown, Delet
     })
 }
 
+interface MovePhotoInput {
+    albumId: string
+    photoId: number
+    targetAlbumId: number
+}
+
+export const useMovePhotoMutation = (): UseMutationResult<Photo, unknown, MovePhotoInput> => {
+    const { axiosInstance } = useAuth()
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({ albumId, photoId, targetAlbumId }: MovePhotoInput) => {
+            const response = await axiosInstance.post(`/photos/${albumId}/${photoId}/move/`, {
+                target_album_id: targetAlbumId,
+            })
+            return response.data.photo
+        },
+        onSuccess: (_data, { albumId, targetAlbumId }) => {
+            queryClient.invalidateQueries({ queryKey: ["photos", albumId] })
+            queryClient.invalidateQueries({ queryKey: ["photos", String(targetAlbumId)] })
+            queryClient.invalidateQueries({ queryKey: ["albums"] })
+        },
+    })
+}
+
+interface CopyPhotoInput {
+    albumId: string
+    photoId: number
+    targetAlbumId: number
+}
+
+export const useCopyPhotoMutation = (): UseMutationResult<Photo, unknown, CopyPhotoInput> => {
+    const { axiosInstance } = useAuth()
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async ({ albumId, photoId, targetAlbumId }: CopyPhotoInput) => {
+            const response = await axiosInstance.post(`/photos/${albumId}/${photoId}/copy/`, {
+                target_album_id: targetAlbumId,
+            })
+            return response.data.photo
+        },
+        onSuccess: (_data, { targetAlbumId }) => {
+            queryClient.invalidateQueries({ queryKey: ["photos", String(targetAlbumId)] })
+            queryClient.invalidateQueries({ queryKey: ["albums"] })
+        },
+    })
+}
+
 interface UpdatePhotoInput {
     albumId: string
     photoId: number

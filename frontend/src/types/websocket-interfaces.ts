@@ -62,6 +62,17 @@ export interface PhotoUpdated {
     album_id: number
 }
 
+export interface PhotoMoved {
+    data: Photo
+    source_album_id: number
+    target_album_id: number
+}
+
+export interface PhotoCopied {
+    data: Photo
+    album_id: number
+}
+
 // Album interfaces
 export interface Album {
     id: number
