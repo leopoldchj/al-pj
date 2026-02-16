@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth"
 import { IAlbum, AddAlbumInput } from "../types/album"
 import { useMutation, UseMutationResult } from "@tanstack/react-query"
 import { useQueryClient } from "@tanstack/react-query"
+import { optimizeImage } from "../utils/imageOptimizer"
 
 export const useAlbums = (): UseQueryResult<IAlbum[], unknown> => {
     const { axiosInstance } = useAuth()
@@ -26,7 +27,8 @@ export const useAddAlbumMutation = (): UseMutationResult<IAlbum, unknown, AddAlb
             formData.append("title", name)
             formData.append("description", description)
             if (image) {
-                formData.append("image", image)
+                const optimizedImage = await optimizeImage(image)
+                formData.append("image", optimizedImage)
             }
             const response = await axiosInstance.post("/albums/", formData)
             return response.data
@@ -60,7 +62,8 @@ export const useUpdateAlbumMutation = (): UseMutationResult<
                 formData.append("description", description)
             }
             if (image instanceof File) {
-                formData.append("image", image)
+                const optimizedImage = await optimizeImage(image)
+                formData.append("image", optimizedImage)
             }
 
             const response = await axiosInstance.put(`/albums/${id}/`, formData)

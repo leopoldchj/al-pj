@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth"
 import { Photo } from "../types/photo"
 import { useQueryClient } from "@tanstack/react-query"
 import { AddPhotoInput } from "../types/photo"
+import { optimizeImage } from "../utils/imageOptimizer"
 
 export function useGetPhotos(
     albumId: string
@@ -28,7 +29,8 @@ export const useAddPhotoMutation = (): UseMutationResult<Photo, unknown, AddPhot
             const formData = new FormData()
 
             if (image) {
-                formData.append("image", image)
+                const optimizedImage = await optimizeImage(image)
+                formData.append("image", optimizedImage)
             }
             if (caption) {
                 formData.append("caption", caption)
