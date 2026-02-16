@@ -119,7 +119,7 @@ export const useCopyPhotoMutation = (): UseMutationResult<Photo, unknown, CopyPh
 interface UpdatePhotoInput {
     albumId: string
     photoId: number
-    data: Partial<Pick<Photo, "caption" | "location">>
+    data: Partial<Pick<Photo, "caption" | "location">> & { target_album_id?: number }
 }
 
 export const useUpdatePhotoMutation = (): UseMutationResult<Photo, unknown, UpdatePhotoInput> => {
@@ -131,8 +131,14 @@ export const useUpdatePhotoMutation = (): UseMutationResult<Photo, unknown, Upda
             const response = await axiosInstance.patch(`/photos/${albumId}/${photoId}/`, data)
             return response.data.photo
         },
-        onSuccess: (_data, { albumId }) => {
+        onSuccess: (_data, { albumId, data }) => {
             queryClient.invalidateQueries({ queryKey: ["photos", albumId] })
+            if (data.target_album_id) {
+                queryClient.invalidateQueries({
+                    queryKey: ["photos", String(data.target_album_id)],
+                })
+            }
+            queryClient.invalidateQueries({ queryKey: ["albums"] })
         },
     })
 }

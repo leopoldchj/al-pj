@@ -92,17 +92,35 @@ class PhotoService:
 
     @classmethod
     def update_photo(cls, photo_id: int, album_id: int, data: dict) -> dict:
-        """Update a photo and broadcast the update event."""
+        """Update a photo and broadcast the update event.
+
+        Supports an optional ``target_album_id`` key in *data* to move the
+        photo to another album (pure DB operation, no S3 call).
+        """
         try:
             photo = Photo.objects.get(pk=photo_id, album_id=album_id)
         except Photo.DoesNotExist:
             raise NotFound(f"Photo with id {photo_id} not found in album {album_id}")
 
-        serializer = PhotoSerializer(photo, data=data, partial=True)
-        if not serializer.is_valid():
-            raise ValidationError(serializer.errors)
+        # Handle album change (move) separately from serializer fields
+        target_album_id = data.pop("target_album_id", None)
+        if target_album_id is not None:
+            target_album_id = int(target_album_id)
+            if target_album_id != album_id:
+                try:
+                    target_album = Album.objects.get(pk=target_album_id)
+                except Album.DoesNotExist:
+                    raise NotFound(f"Album with id {target_album_id} not found")
+                photo.album = target_album
+                photo.save(update_fields=["album_id", "updated_at"])
 
-        photo = serializer.save()
+        # Update text metadata (caption, location) via serializer
+        if data:
+            serializer = PhotoSerializer(photo, data=data, partial=True)
+            if not serializer.is_valid():
+                raise ValidationError(serializer.errors)
+            photo = serializer.save()
+
         photo_data = PhotoSerializer(photo).data
 
         safe_album_id = cls._sanitize_for_log(album_id)
