@@ -24,6 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import MoreVertIcon from "@mui/icons-material/MoreVert"
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
+import EditIcon from "@mui/icons-material/Edit"
 import { Photo } from "../types/photo"
 import { IAlbum } from "../types/album"
 import {
@@ -32,6 +33,7 @@ import {
     useCopyPhotoMutation,
 } from "../queries/photos"
 import SelectAlbumModal from "./SelectAlbumModal"
+import EditPhotoModal from "./EditPhotoModal"
 
 interface PhotoCardProps {
     photo: Photo
@@ -45,6 +47,7 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
     const [moveModalOpen, setMoveModalOpen] = useState(false)
     const [copyModalOpen, setCopyModalOpen] = useState(false)
+    const [editModalOpen, setEditModalOpen] = useState(false)
     const [snackbar, setSnackbar] = useState<{
         open: boolean
         message: string
@@ -196,6 +199,22 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                             gap: 0.5,
                         }}
                     >
+                        <Tooltip title="Modifier">
+                            <IconButton
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setEditModalOpen(true)
+                                }}
+                                sx={{
+                                    backgroundColor: "rgba(0,0,0,0.5)",
+                                    color: "white",
+                                    "&:hover": { backgroundColor: "rgba(0,0,0,0.7)" },
+                                }}
+                                size="small"
+                            >
+                                <EditIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
                         <Tooltip title="Options">
                             <IconButton
                                 onClick={handleMenuOpen}
@@ -344,6 +363,26 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                             zIndex: 1301,
                         }}
                     >
+                        {/* Edit button in modal */}
+                        <Tooltip title="Modifier">
+                            <Box
+                                onClick={() => setEditModalOpen(true)}
+                                sx={{
+                                    backgroundColor: "rgba(0,0,0,0.6)",
+                                    borderRadius: "50%",
+                                    width: 36,
+                                    height: 36,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    cursor: "pointer",
+                                    "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
+                                }}
+                            >
+                                <EditIcon sx={{ color: "white", fontSize: 18 }} />
+                            </Box>
+                        </Tooltip>
+
                         {/* Move button in modal */}
                         <Tooltip title="Déplacer vers...">
                             <Box
@@ -587,6 +626,14 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                 currentAlbumId={albumId}
                 title="Copier vers..."
                 loading={copyPhotoMutation.isPending}
+            />
+
+            {/* Edit photo modal */}
+            <EditPhotoModal
+                open={editModalOpen}
+                onClose={() => setEditModalOpen(false)}
+                photo={photo}
+                albumId={albumId}
             />
 
             {/* Feedback snackbar */}
