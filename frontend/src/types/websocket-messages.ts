@@ -10,6 +10,8 @@ import {
     PhotoUploaded,
     PhotoDeleted,
     PhotoUpdated,
+    PhotoMoved,
+    PhotoCopied,
     AlbumCreated,
     AlbumDeleted,
     AlbumUpdated,
@@ -35,6 +37,8 @@ export interface WebSocketMessageTable {
     [WebSocketMessageType.PhotoUploaded]: PhotoUploaded
     [WebSocketMessageType.PhotoDeleted]: PhotoDeleted
     [WebSocketMessageType.PhotoUpdated]: PhotoUpdated
+    [WebSocketMessageType.PhotoMoved]: PhotoMoved
+    [WebSocketMessageType.PhotoCopied]: PhotoCopied
 
     // Album types
     [WebSocketMessageType.AlbumCreated]: AlbumCreated

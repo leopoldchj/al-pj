@@ -17,6 +17,8 @@ export enum WebSocketMessageType {
     PhotoUploaded = "PHOTO_UPLOADED",
     PhotoDeleted = "PHOTO_DELETED",
     PhotoUpdated = "PHOTO_UPDATED",
+    PhotoMoved = "PHOTO_MOVED",
+    PhotoCopied = "PHOTO_COPIED",
 
     // Album events
     AlbumCreated = "ALBUM_CREATED",

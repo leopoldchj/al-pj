@@ -28,3 +28,7 @@ class PhotoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"album": "Album manquant"})
 
         return Photo.objects.create(album=album, **validated_data)
+
+
+class TargetAlbumSerializer(serializers.Serializer):
+    target_album_id = serializers.IntegerField()

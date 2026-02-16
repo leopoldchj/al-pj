@@ -8,6 +8,8 @@ from .views import (
     AlbumView,
     PhotoView,
     PhotoDetailView,
+    PhotoMoveView,
+    PhotoCopyView,
 )
 
 urlpatterns = [
@@ -29,5 +31,15 @@ urlpatterns = [
         "photos/<int:album_id>/<int:photo_id>/",
         PhotoDetailView.as_view(),
         name="photo_detail",
+    ),
+    path(
+        "photos/<int:album_id>/<int:photo_id>/move/",
+        PhotoMoveView.as_view(),
+        name="photo_move",
+    ),
+    path(
+        "photos/<int:album_id>/<int:photo_id>/copy/",
+        PhotoCopyView.as_view(),
+        name="photo_copy",
     ),
 ]

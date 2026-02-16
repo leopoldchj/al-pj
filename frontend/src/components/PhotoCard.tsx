@@ -11,12 +11,23 @@ import {
     CircularProgress,
     Tooltip,
     Zoom,
+    Menu,
+    MenuItem,
+    ListItemIcon,
+    ListItemText,
+    Snackbar,
+    Alert,
 } from "@mui/material"
 import LocationOnIcon from "@mui/icons-material/LocationOn"
 import InsertPhotoIcon from "@mui/icons-material/InsertPhoto"
 import DeleteIcon from "@mui/icons-material/Delete"
+import MoreVertIcon from "@mui/icons-material/MoreVert"
+import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove"
+import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import { Photo } from "../types/photo"
-import { useDeletePhotoMutation } from "../queries/photos"
+import { IAlbum } from "../types/album"
+import { useDeletePhotoMutation, useMovePhotoMutation, useCopyPhotoMutation } from "../queries/photos"
+import SelectAlbumModal from "./SelectAlbumModal"
 
 interface PhotoCardProps {
     photo: Photo
@@ -27,7 +38,18 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
     const [open, setOpen] = useState(false)
     const [isHovered, setIsHovered] = useState(false)
     const [confirmDelete, setConfirmDelete] = useState(false)
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
+    const [moveModalOpen, setMoveModalOpen] = useState(false)
+    const [copyModalOpen, setCopyModalOpen] = useState(false)
+    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
+        open: false,
+        message: "",
+        severity: "success",
+    })
+
     const deletePhotoMutation = useDeletePhotoMutation()
+    const movePhotoMutation = useMovePhotoMutation()
+    const copyPhotoMutation = useCopyPhotoMutation()
 
     const handleOpen = () => setOpen(true)
     const handleClose = () => {
@@ -44,6 +66,45 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
             return
         }
         deletePhotoMutation.mutate({ albumId, photoId: photo.id })
+    }
+
+    const handleMenuOpen = (e: React.MouseEvent<HTMLElement>) => {
+        e.stopPropagation()
+        setMenuAnchor(e.currentTarget)
+    }
+
+    const handleMenuClose = () => {
+        setMenuAnchor(null)
+    }
+
+    const handleMoveSelect = (album: IAlbum) => {
+        movePhotoMutation.mutate(
+            { albumId, photoId: photo.id, targetAlbumId: album.id },
+            {
+                onSuccess: () => {
+                    setMoveModalOpen(false)
+                    setSnackbar({ open: true, message: `Photo déplacée vers "${album.title}"`, severity: "success" })
+                },
+                onError: () => {
+                    setSnackbar({ open: true, message: "Erreur lors du déplacement", severity: "error" })
+                },
+            }
+        )
+    }
+
+    const handleCopySelect = (album: IAlbum) => {
+        copyPhotoMutation.mutate(
+            { albumId, photoId: photo.id, targetAlbumId: album.id },
+            {
+                onSuccess: () => {
+                    setCopyModalOpen(false)
+                    setSnackbar({ open: true, message: `Photo copiée vers "${album.title}"`, severity: "success" })
+                },
+                onError: () => {
+                    setSnackbar({ open: true, message: "Erreur lors de la copie", severity: "error" })
+                },
+            }
+        )
     }
 
     const isDeleting = deletePhotoMutation.isPending
@@ -100,28 +161,48 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                     </Box>
                 )}
 
-                {/* Delete button - visible on hover */}
+                {/* Action buttons - visible on hover */}
                 <Zoom in={isHovered && !isDeleting}>
-                    <Tooltip title={confirmDelete ? "Cliquer pour confirmer" : "Supprimer"}>
-                        <IconButton
-                            onClick={handleDelete}
-                            sx={{
-                                position: "absolute",
-                                top: 8,
-                                right: 8,
-                                backgroundColor: confirmDelete ? "error.main" : "rgba(0,0,0,0.5)",
-                                color: "white",
-                                "&:hover": {
-                                    backgroundColor: confirmDelete
-                                        ? "error.dark"
-                                        : "rgba(0,0,0,0.7)",
-                                },
-                            }}
-                            size="small"
-                        >
-                            <DeleteIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            display: "flex",
+                            gap: 0.5,
+                        }}
+                    >
+                        <Tooltip title="Options">
+                            <IconButton
+                                onClick={handleMenuOpen}
+                                sx={{
+                                    backgroundColor: "rgba(0,0,0,0.5)",
+                                    color: "white",
+                                    "&:hover": { backgroundColor: "rgba(0,0,0,0.7)" },
+                                }}
+                                size="small"
+                            >
+                                <MoreVertIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title={confirmDelete ? "Cliquer pour confirmer" : "Supprimer"}>
+                            <IconButton
+                                onClick={handleDelete}
+                                sx={{
+                                    backgroundColor: confirmDelete ? "error.main" : "rgba(0,0,0,0.5)",
+                                    color: "white",
+                                    "&:hover": {
+                                        backgroundColor: confirmDelete
+                                            ? "error.dark"
+                                            : "rgba(0,0,0,0.7)",
+                                    },
+                                }}
+                                size="small"
+                            >
+                                <DeleteIcon fontSize="small" />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
                 </Zoom>
 
                 {/* Loading indicator when deleting */}
@@ -237,6 +318,46 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                             zIndex: 1301,
                         }}
                     >
+                        {/* Move button in modal */}
+                        <Tooltip title="Déplacer vers...">
+                            <Box
+                                onClick={() => setMoveModalOpen(true)}
+                                sx={{
+                                    backgroundColor: "rgba(0,0,0,0.6)",
+                                    borderRadius: "50%",
+                                    width: 36,
+                                    height: 36,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    cursor: "pointer",
+                                    "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
+                                }}
+                            >
+                                <DriveFileMoveIcon sx={{ color: "white", fontSize: 18 }} />
+                            </Box>
+                        </Tooltip>
+
+                        {/* Copy button in modal */}
+                        <Tooltip title="Copier vers...">
+                            <Box
+                                onClick={() => setCopyModalOpen(true)}
+                                sx={{
+                                    backgroundColor: "rgba(0,0,0,0.6)",
+                                    borderRadius: "50%",
+                                    width: 36,
+                                    height: 36,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    cursor: "pointer",
+                                    "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
+                                }}
+                            >
+                                <ContentCopyIcon sx={{ color: "white", fontSize: 18 }} />
+                            </Box>
+                        </Tooltip>
+
                         {/* Delete button in modal */}
                         <Tooltip title={confirmDelete ? "Cliquer pour confirmer" : "Supprimer"}>
                             <Box
@@ -390,6 +511,73 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                     </Box>
                 </Box>
             </Modal>
+
+            {/* Context menu for card hover */}
+            <Menu
+                anchorEl={menuAnchor}
+                open={Boolean(menuAnchor)}
+                onClose={handleMenuClose}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <MenuItem
+                    onClick={() => {
+                        handleMenuClose()
+                        setMoveModalOpen(true)
+                    }}
+                >
+                    <ListItemIcon>
+                        <DriveFileMoveIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Déplacer vers...</ListItemText>
+                </MenuItem>
+                <MenuItem
+                    onClick={() => {
+                        handleMenuClose()
+                        setCopyModalOpen(true)
+                    }}
+                >
+                    <ListItemIcon>
+                        <ContentCopyIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Copier vers...</ListItemText>
+                </MenuItem>
+            </Menu>
+
+            {/* Move album selection modal */}
+            <SelectAlbumModal
+                open={moveModalOpen}
+                onClose={() => setMoveModalOpen(false)}
+                onSelect={handleMoveSelect}
+                currentAlbumId={albumId}
+                title="Déplacer vers..."
+                loading={movePhotoMutation.isPending}
+            />
+
+            {/* Copy album selection modal */}
+            <SelectAlbumModal
+                open={copyModalOpen}
+                onClose={() => setCopyModalOpen(false)}
+                onSelect={handleCopySelect}
+                currentAlbumId={albumId}
+                title="Copier vers..."
+                loading={copyPhotoMutation.isPending}
+            />
+
+            {/* Feedback snackbar */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={4000}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+                    severity={snackbar.severity}
+                    variant="filled"
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </>
     )
 }

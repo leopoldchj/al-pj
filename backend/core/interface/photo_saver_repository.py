@@ -15,3 +15,7 @@ class PhotoSaverRepository(ABC):
     @abstractmethod
     def delete(self, file_url: str) -> bool:
         pass
+
+    @abstractmethod
+    def copy_file(self, source_url: str, target_album_id) -> str:
+        pass
