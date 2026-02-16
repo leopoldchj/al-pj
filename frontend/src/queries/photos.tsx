@@ -79,10 +79,9 @@ export const useMovePhotoMutation = (): UseMutationResult<Photo, unknown, MovePh
 
     return useMutation({
         mutationFn: async ({ albumId, photoId, targetAlbumId }: MovePhotoInput) => {
-            const response = await axiosInstance.post(
-                `/photos/${albumId}/${photoId}/move/`,
-                { target_album_id: targetAlbumId }
-            )
+            const response = await axiosInstance.post(`/photos/${albumId}/${photoId}/move/`, {
+                target_album_id: targetAlbumId,
+            })
             return response.data.photo
         },
         onSuccess: (_data, { albumId, targetAlbumId }) => {
@@ -105,10 +104,9 @@ export const useCopyPhotoMutation = (): UseMutationResult<Photo, unknown, CopyPh
 
     return useMutation({
         mutationFn: async ({ albumId, photoId, targetAlbumId }: CopyPhotoInput) => {
-            const response = await axiosInstance.post(
-                `/photos/${albumId}/${photoId}/copy/`,
-                { target_album_id: targetAlbumId }
-            )
+            const response = await axiosInstance.post(`/photos/${albumId}/${photoId}/copy/`, {
+                target_album_id: targetAlbumId,
+            })
             return response.data.photo
         },
         onSuccess: (_data, { targetAlbumId }) => {

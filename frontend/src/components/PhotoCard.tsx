@@ -26,7 +26,11 @@ import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import { Photo } from "../types/photo"
 import { IAlbum } from "../types/album"
-import { useDeletePhotoMutation, useMovePhotoMutation, useCopyPhotoMutation } from "../queries/photos"
+import {
+    useDeletePhotoMutation,
+    useMovePhotoMutation,
+    useCopyPhotoMutation,
+} from "../queries/photos"
 import SelectAlbumModal from "./SelectAlbumModal"
 
 interface PhotoCardProps {
@@ -41,7 +45,11 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
     const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
     const [moveModalOpen, setMoveModalOpen] = useState(false)
     const [copyModalOpen, setCopyModalOpen] = useState(false)
-    const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({
+    const [snackbar, setSnackbar] = useState<{
+        open: boolean
+        message: string
+        severity: "success" | "error"
+    }>({
         open: false,
         message: "",
         severity: "success",
@@ -83,10 +91,18 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
             {
                 onSuccess: () => {
                     setMoveModalOpen(false)
-                    setSnackbar({ open: true, message: `Photo déplacée vers "${album.title}"`, severity: "success" })
+                    setSnackbar({
+                        open: true,
+                        message: `Photo déplacée vers "${album.title}"`,
+                        severity: "success",
+                    })
                 },
                 onError: () => {
-                    setSnackbar({ open: true, message: "Erreur lors du déplacement", severity: "error" })
+                    setSnackbar({
+                        open: true,
+                        message: "Erreur lors du déplacement",
+                        severity: "error",
+                    })
                 },
             }
         )
@@ -98,10 +114,18 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
             {
                 onSuccess: () => {
                     setCopyModalOpen(false)
-                    setSnackbar({ open: true, message: `Photo copiée vers "${album.title}"`, severity: "success" })
+                    setSnackbar({
+                        open: true,
+                        message: `Photo copiée vers "${album.title}"`,
+                        severity: "success",
+                    })
                 },
                 onError: () => {
-                    setSnackbar({ open: true, message: "Erreur lors de la copie", severity: "error" })
+                    setSnackbar({
+                        open: true,
+                        message: "Erreur lors de la copie",
+                        severity: "error",
+                    })
                 },
             }
         )
@@ -189,7 +213,9 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                             <IconButton
                                 onClick={handleDelete}
                                 sx={{
-                                    backgroundColor: confirmDelete ? "error.main" : "rgba(0,0,0,0.5)",
+                                    backgroundColor: confirmDelete
+                                        ? "error.main"
+                                        : "rgba(0,0,0,0.5)",
                                     color: "white",
                                     "&:hover": {
                                         backgroundColor: confirmDelete

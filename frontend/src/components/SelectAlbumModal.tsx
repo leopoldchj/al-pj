@@ -33,9 +33,7 @@ const SelectAlbumModal = ({
 }: SelectAlbumModalProps) => {
     const { data: albums, isLoading } = useAlbums()
 
-    const filteredAlbums = albums?.filter(
-        (album) => String(album.id) !== String(currentAlbumId)
-    )
+    const filteredAlbums = albums?.filter((album) => String(album.id) !== String(currentAlbumId))
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>

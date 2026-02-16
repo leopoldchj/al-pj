@@ -9,9 +9,33 @@ jest.mock("../queries/albums", () => ({
 }))
 
 const mockAlbums = [
-    { id: 1, title: "Vacances", description: "", cover_image: "", created_at: "", updated_at: "", nb_photos: 5 },
-    { id: 2, title: "Famille", description: "", cover_image: "", created_at: "", updated_at: "", nb_photos: 3 },
-    { id: 3, title: "Amis", description: "", cover_image: "", created_at: "", updated_at: "", nb_photos: 0 },
+    {
+        id: 1,
+        title: "Vacances",
+        description: "",
+        cover_image: "",
+        created_at: "",
+        updated_at: "",
+        nb_photos: 5,
+    },
+    {
+        id: 2,
+        title: "Famille",
+        description: "",
+        cover_image: "",
+        created_at: "",
+        updated_at: "",
+        nb_photos: 3,
+    },
+    {
+        id: 3,
+        title: "Amis",
+        description: "",
+        cover_image: "",
+        created_at: "",
+        updated_at: "",
+        nb_photos: 0,
+    },
 ]
 
 describe("SelectAlbumModal", () => {
